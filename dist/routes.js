@@ -7,5 +7,5 @@ const express_1 = __importDefault(require("express"));
 const controllers_1 = require("./controllers");
 const router = express_1.default.Router();
 router.get("/allMatchs", controllers_1.getAllMatch);
-router.get("/match/:id", controllers_1.getOneMatch);
+router.get("/match/:id", controllers_1.getOneMatchById);
 exports.default = router;

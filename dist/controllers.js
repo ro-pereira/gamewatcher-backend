@@ -12,12 +12,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getOneMatch = exports.getAllMatch = void 0;
+exports.getOneMatchById = exports.getAllMatch = void 0;
 const db_1 = __importDefault(require("./db"));
-const getAllMatch = (res) => __awaiter(void 0, void 0, void 0, function* () {
+// export type TGames = {
+//   data: Date;
+//   championship: string;
+//   team_1_name: string;
+//   team_2_name: string;
+//   channels: string[];
+// };
+const getAllMatch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const games = yield (0, db_1.default)("SELECT * FROM games");
-        return res.status(200).json(games.rows);
+        const resultGames = yield (0, db_1.default)(`
+  SELECT
+    g.date,
+    g.championship,
+    t1.name AS team_1_name,
+    t2.name AS team_2_name,
+    ARRAY_AGG(c.name) AS channels
+  FROM games g
+  JOIN teams t1 ON t1.id = g.team_1_id
+  JOIN teams t2 ON t2.id = g.team_2_id
+  JOIN channels_games cg ON cg.game_id = g.id
+  JOIN channels c ON c.id = cg.channel_id
+  GROUP BY
+    g.id,
+    g.date,
+    g.championship,
+    t1.name,
+    t2.name
+`);
+        const dataGame = resultGames.rows;
+        return res.status(200).json(dataGame);
     }
     catch (error) {
         if (error instanceof Error) {
@@ -27,7 +53,7 @@ const getAllMatch = (res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getAllMatch = getAllMatch;
-const getOneMatch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getOneMatchById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const { rowCount, rows } = yield (0, db_1.default)("SELECT * FROM games WHERE id = $1", [
         id,
@@ -40,4 +66,4 @@ const getOneMatch = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
     return res.status(200).json(rows[0]);
 });
-exports.getOneMatch = getOneMatch;
+exports.getOneMatchById = getOneMatchById;
