@@ -2,14 +2,6 @@ import { Request, Response } from "express";
 import query from "./db";
 import { TGames } from "./types";
 
-// export type TGames = {
-//   data: Date;
-//   championship: string;
-//   team_1_name: string;
-//   team_2_name: string;
-//   channels: string[];
-// };
-
 const getAllMatch = async (req: Request, res: Response) => {
   try {
     const resultGames = await query(`
@@ -17,7 +9,10 @@ const getAllMatch = async (req: Request, res: Response) => {
     g.date,
     g.championship,
     t1.name AS team_1_name,
+    t1.img AS team_1_img,
     t2.name AS team_2_name,
+    t2.img AS team_2_img,
+
     ARRAY_AGG(c.name) AS channels
   FROM games g
   JOIN teams t1 ON t1.id = g.team_1_id
@@ -25,16 +20,19 @@ const getAllMatch = async (req: Request, res: Response) => {
   JOIN channels_games cg ON cg.game_id = g.id
   JOIN channels c ON c.id = cg.channel_id
   GROUP BY
+
     g.id,
     g.date,
     g.championship,
     t1.name,
-    t2.name
+    t1.img,
+    t2.name,
+    t2.img
 `);
 
     const dataGame: TGames[] = resultGames.rows;
-
     return res.status(200).json(dataGame);
+    // return []
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(401).json({ "Error fetching match:": error });
